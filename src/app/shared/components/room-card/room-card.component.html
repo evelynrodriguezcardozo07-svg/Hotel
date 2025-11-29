@@ -1,0 +1,105 @@
+<!-- Tarjeta de Habitación Reutilizable con @Input y @Output -->
+<div class="bg-white border-2 border-gray-200 hover:border-black transition-all duration-300 overflow-hidden group">
+  <!-- Carrusel de Imágenes -->
+  <div class="relative h-64 overflow-hidden bg-gray-100">
+    <img 
+      [src]="getCurrentImage()" 
+      [alt]="room.nombreCompleto || 'Habitación ' + room.numero"
+      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+    />
+    
+    <!-- Controles del carrusel (solo si hay múltiples imágenes) -->
+    <div *ngIf="hasMultipleImages()" class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+      <button 
+        (click)="previousImage()"
+        class="bg-black bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90 transition-all"
+        type="button">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <button 
+        (click)="nextImage()"
+        class="bg-black bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90 transition-all"
+        type="button">
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Indicador de disponibilidad -->
+    <div class="absolute top-4 right-4">
+      <span 
+        *ngIf="room.disponible !== false"
+        class="bg-green-500 text-white px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+        Disponible
+      </span>
+      <span 
+        *ngIf="room.disponible === false"
+        class="bg-red-500 text-white px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+        No disponible
+      </span>
+    </div>
+
+    <!-- Indicador de imágenes -->
+    <div *ngIf="hasMultipleImages()" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+      <span 
+        *ngFor="let img of room.imagenes; let i = index"
+        [class.bg-white]="i === currentImageIndex"
+        [class.bg-white/50]="i !== currentImageIndex"
+        class="h-2 w-2 rounded-full transition-all">
+      </span>
+    </div>
+  </div>
+
+  <!-- Información de la habitación -->
+  <div class="p-6">
+    <div class="mb-4">
+      <h3 class="text-xl font-bold text-gray-900 mb-1">
+        {{ room.nombreCompleto || room.nombreCorto || 'Habitación ' + room.numero }}
+      </h3>
+      <p class="text-sm text-gray-500 uppercase tracking-wider">
+        Habitación N° {{ room.numero }}
+      </p>
+    </div>
+
+    <p *ngIf="room.descripcion" class="text-gray-600 text-sm mb-4 line-clamp-2">
+      {{ room.descripcion }}
+    </p>
+
+    <!-- Capacidad -->
+    <div *ngIf="room.capacidad" class="flex items-center text-gray-600 mb-4">
+      <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+      </svg>
+      <span class="text-sm">Capacidad: {{ room.capacidad }} {{ room.capacidad === 1 ? 'persona' : 'personas' }}</span>
+    </div>
+
+    <!-- Precio y acciones -->
+    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+      <div *ngIf="showPrice">
+        <p class="text-sm text-gray-500">Desde</p>
+        <p class="text-2xl font-bold text-black">${{ room.precioBase | number:'1.0-0' }}</p>
+        <p class="text-xs text-gray-500">por noche</p>
+      </div>
+
+      <!-- Botones de acción -->
+      <div *ngIf="showActions" class="flex gap-2">
+        <button
+          (click)="onViewDetailsClick()"
+          class="px-4 py-2 border-2 border-black text-black hover:bg-black hover:text-white transition-all font-medium"
+          type="button">
+          Ver detalles
+        </button>
+        <button
+          (click)="onReserveClick()"
+          [disabled]="room.disponible === false"
+          class="px-4 py-2 bg-black text-white hover:bg-gray-800 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          type="button">
+          Reservar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

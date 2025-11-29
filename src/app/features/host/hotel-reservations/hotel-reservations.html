@@ -1,0 +1,805 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <button
+        (click)="goBack()"
+        class="mb-4 flex items-center text-gray-600 hover:text-primary-600 transition-colors"
+      >
+        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Volver al dashboard
+      </button>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Reservas del Hotel</h1>
+          <p *ngIf="hotel" class="text-gray-600 mt-2">{{ hotel.nombre }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-sm text-gray-600">Total de reservas</p>
+          <p class="text-3xl font-bold text-primary-600">{{ totalElements }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm">Pendientes</p>
+            <p class="text-2xl font-bold text-yellow-600">{{ stats.pendientes }}</p>
+          </div>
+          <svg class="h-10 w-10 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm">Confirmadas</p>
+            <p class="text-2xl font-bold text-blue-600">{{ stats.confirmadas }}</p>
+          </div>
+          <svg class="h-10 w-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm">Completadas</p>
+            <p class="text-2xl font-bold text-green-600">{{ stats.completadas }}</p>
+          </div>
+          <svg class="h-10 w-10 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm">Canceladas</p>
+            <p class="text-2xl font-bold text-red-600">{{ stats.canceladas }}</p>
+          </div>
+          <svg class="h-10 w-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div *ngIf="message" class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+      <p class="text-green-800">{{ message }}</p>
+    </div>
+
+    <div *ngIf="error" class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+      <p class="text-red-800">{{ error }}</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Código, cliente, habitación..."
+            class="w-full border border-gray-300 rounded-lg px-4 py-2"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+          <select
+            [(ngModel)]="selectedStatus"
+            class="w-full border border-gray-300 rounded-lg px-4 py-2"
+          >
+            <option value="todas">Todas</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="confirmada">Confirmadas</option>
+            <option value="completada">Completadas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <p class="mt-4 text-gray-600">Cargando reservas...</p>
+    </div>
+
+    <!-- Lista de reservas -->
+    <div *ngIf="!loading && filteredReservations.length > 0" class="space-y-4">
+      <div
+        *ngFor="let reservation of filteredReservations"
+        class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+      >
+        <div class="p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <div class="flex items-center space-x-3 mb-2">
+                <div class="flex-shrink-0">
+                  <!-- Icono Pendiente -->
+                  <svg *ngIf="reservation.estado === 'pendiente'" class="h-8 w-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                  </svg>
+                  <!-- Icono Confirmada -->
+                  <svg *ngIf="reservation.estado === 'confirmada'" class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <!-- Icono Completada -->
+                  <svg *ngIf="reservation.estado === 'completada'" class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  <!-- Icono Cancelada -->
+                  <svg *ngIf="reservation.estado === 'cancelada'" class="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">
+                  Reserva #{{ reservation.codigoReserva }}
+                </h3>
+                <span
+                  class="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center"
+                  [class]="getStatusColor(reservation.estado)"
+                >
+                  <!-- Icono Pendiente -->
+                  <svg *ngIf="reservation.estado === 'pendiente'" class="h-3.5 w-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                  </svg>
+                  <!-- Icono Confirmada -->
+                  <svg *ngIf="reservation.estado === 'confirmada'" class="h-3.5 w-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <!-- Icono Completada -->
+                  <svg *ngIf="reservation.estado === 'completada'" class="h-3.5 w-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  <!-- Icono Cancelada -->
+                  <svg *ngIf="reservation.estado === 'cancelada'" class="h-3.5 w-3.5 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ reservation.estado }}
+                </span>
+              </div>
+              <p class="text-gray-600">Habitación {{ reservation.habitacion.numero }} - {{ reservation.habitacion.nombreCorto }}</p>
+            </div>
+
+            <div class="text-right">
+              <p class="text-2xl font-bold text-primary-600">${{ reservation.precioTotal | number:'1.0-0' }}</p>
+              <p class="text-sm text-gray-600">{{ calculateNights(reservation) }} noche(s)</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200">
+            <div>
+              <p class="text-sm text-gray-600 mb-1">Cliente</p>
+              <p class="font-semibold text-gray-900">{{ reservation.usuario.nombre }}</p>
+              <p class="text-sm text-gray-600">{{ reservation.usuario.email }}</p>
+            </div>
+
+            <div>
+              <p class="text-sm text-gray-600 mb-1">Check-in / Check-out</p>
+              <p class="font-semibold text-gray-900">
+                {{ reservation.fechaCheckin | date:'dd/MM/yyyy' }} - {{ reservation.fechaCheckout | date:'dd/MM/yyyy' }}
+              </p>
+              <p class="text-sm text-gray-600">{{ reservation.cantidadHuespedes }} huésped(es)</p>
+            </div>
+
+            <div>
+              <p class="text-sm text-gray-600 mb-1">Fecha de reserva</p>
+              <p class="font-semibold text-gray-900">{{ reservation.creadoEn | date:'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+          </div>
+
+          <!-- Acciones -->
+          <div class="flex space-x-3">
+            <button
+              *ngIf="reservation.estado === 'pendiente'"
+              (click)="openConfirmModal(reservation)"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium flex items-center shadow-sm hover:shadow-md"
+            >
+              <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Confirmar
+            </button>
+
+            <button
+              *ngIf="reservation.estado === 'confirmada'"
+              (click)="openCompleteModal(reservation)"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-sm font-medium flex items-center shadow-sm hover:shadow-md"
+            >
+              <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+              </svg>
+              Completada
+            </button>
+
+            <button
+              *ngIf="reservation.estado === 'pendiente' || reservation.estado === 'confirmada'"
+              (click)="openCancelModal(reservation)"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all text-sm font-medium flex items-center shadow-sm hover:shadow-md"
+            >
+              <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Cancelar
+            </button>
+
+            <button
+              (click)="viewReservationDetails(reservation)"
+              class="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all text-sm font-medium flex items-center shadow-sm"
+            >
+              <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Ver detalles
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin reservas -->
+    <div *ngIf="!loading && filteredReservations.length === 0" class="bg-white rounded-lg shadow-md p-12 text-center">
+      <svg class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+      <p class="text-gray-600 text-lg">No hay reservas para mostrar</p>
+      <p class="text-gray-500 text-sm mt-2">Las reservas aparecerán aquí cuando los huéspedes reserven habitaciones</p>
+    </div>
+
+    <!-- Paginación -->
+    <div *ngIf="totalPages > 1" class="mt-8 flex items-center justify-center space-x-2">
+      <button
+        (click)="changePage(currentPage - 1)"
+        [disabled]="currentPage === 0"
+        class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Anterior
+      </button>
+
+      <div class="flex space-x-2">
+        <button
+          *ngFor="let page of [].constructor(totalPages); let i = index"
+          (click)="changePage(i)"
+          [class.bg-primary-600]="i === currentPage"
+          [class.text-white]="i === currentPage"
+          [class.border-gray-300]="i !== currentPage"
+          class="px-4 py-2 border rounded-lg hover:bg-primary-100"
+        >
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button
+        (click)="changePage(currentPage + 1)"
+        [disabled]="currentPage === totalPages - 1"
+        class="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalles de Reserva -->
+<div *ngIf="showDetailsModal && selectedReservation" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="closeDetailsModal()">
+  <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="bg-black text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold">Detalles de Reserva</h2>
+          <p class="text-gray-300 mt-1">{{ selectedReservation.codigoReserva }}</p>
+        </div>
+        <button (click)="closeDetailsModal()" class="text-white hover:text-gray-300 text-3xl">
+          ×
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-6 space-y-6">
+      
+      <!-- Estado -->
+      <div class="border-2 border-black rounded-lg p-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-gray-600">Estado de la Reserva</span>
+          <span [class]="getStatusColor(selectedReservation.estado)" 
+                class="px-4 py-2 rounded-full font-bold text-sm inline-flex items-center">
+            <!-- Icono Pendiente -->
+            <svg *ngIf="selectedReservation.estado === 'pendiente'" class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+            <!-- Icono Confirmada -->
+            <svg *ngIf="selectedReservation.estado === 'confirmada'" class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <!-- Icono Completada -->
+            <svg *ngIf="selectedReservation.estado === 'completada'" class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+            <!-- Icono Cancelada -->
+            <svg *ngIf="selectedReservation.estado === 'cancelada'" class="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            {{ selectedReservation.estado | uppercase }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Información del Huésped -->
+      <div class="border-2 border-black rounded-lg p-4">
+        <h3 class="font-bold text-lg mb-3 flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+          </svg>
+          Información del Huésped
+        </h3>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Nombre Completo:</span>
+            <span class="font-semibold">{{ selectedReservation.nombreHuesped }} {{ selectedReservation.apellidoHuesped }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">DNI / Documento:</span>
+            <span class="font-semibold">{{ selectedReservation.dniHuesped }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Teléfono:</span>
+            <span class="font-semibold">{{ selectedReservation.telefonoHuesped }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Email (Usuario):</span>
+            <span class="font-semibold">{{ selectedReservation.usuario.email }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detalles de la Reserva -->
+      <div class="border-2 border-black rounded-lg p-4">
+        <h3 class="font-bold text-lg mb-3 flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+          </svg>
+          Detalles de la Estadía
+        </h3>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Habitación:</span>
+            <span class="font-semibold">{{ getRoomName(selectedReservation) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Check-in:</span>
+            <span class="font-semibold">{{ selectedReservation.fechaCheckin | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Check-out:</span>
+            <span class="font-semibold">{{ selectedReservation.fechaCheckout | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Duración:</span>
+            <span class="font-semibold">{{ getReservationDuration(selectedReservation) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Huéspedes:</span>
+            <span class="font-semibold">{{ selectedReservation.cantidadHuespedes }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información Financiera -->
+      <div class="border-2 border-black rounded-lg p-4 bg-gray-50">
+        <h3 class="font-bold text-lg mb-3 flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Información de Pago
+        </h3>
+        <div class="space-y-2">
+          <div class="flex justify-between" *ngIf="selectedReservation.subtotal">
+            <span class="text-gray-600">Subtotal:</span>
+            <span class="font-semibold">S/ {{ selectedReservation.subtotal | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between" *ngIf="selectedReservation.impuestos">
+            <span class="text-gray-600">Impuestos:</span>
+            <span class="font-semibold">S/ {{ selectedReservation.impuestos | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t-2 border-black">
+            <span class="text-gray-900 font-bold">Total:</span>
+            <span class="text-xl font-bold text-black">S/ {{ (selectedReservation.total || selectedReservation.precioTotal) | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas Especiales -->
+      <div *ngIf="selectedReservation.notasEspeciales" class="border-2 border-black rounded-lg p-4">
+        <h3 class="font-bold text-lg mb-2 flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+          </svg>
+          Notas Especiales
+        </h3>
+        <p class="text-gray-700">{{ selectedReservation.notasEspeciales }}</p>
+      </div>
+
+      <!-- Fechas del Sistema -->
+      <div class="border-t-2 border-gray-200 pt-4">
+        <div class="text-xs text-gray-500 space-y-1">
+          <div class="flex justify-between">
+            <span>Reserva creada:</span>
+            <span>{{ selectedReservation.creadoEn | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="flex justify-between" *ngIf="selectedReservation.actualizadoEn">
+            <span>Última actualización:</span>
+            <span>{{ selectedReservation.actualizadoEn | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="flex justify-between" *ngIf="selectedReservation.fechaCancelacion">
+            <span>Cancelada el:</span>
+            <span>{{ selectedReservation.fechaCancelacion | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motivo de Cancelación -->
+      <div *ngIf="selectedReservation.motivoCancelacion && selectedReservation.estado === 'cancelada'" 
+           class="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+        <h3 class="font-bold text-red-800 mb-2 flex items-center">
+          <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          Motivo de Cancelación
+        </h3>
+        <p class="text-red-700">{{ selectedReservation.motivoCancelacion }}</p>
+      </div>
+    </div>
+
+    <!-- Footer con Acciones -->
+    <div class="bg-gray-50 p-6 rounded-b-xl border-t-2 border-gray-200">
+      <div class="flex justify-end space-x-3">
+        <button 
+          (click)="closeDetailsModal()"
+          class="px-6 py-2 border-2 border-black rounded-lg hover:bg-gray-100 font-semibold">
+          Cerrar
+        </button>
+        
+        <button 
+          *ngIf="selectedReservation.estado === 'pendiente'"
+          (click)="closeDetailsModal(); openConfirmModal(selectedReservation)"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center transition-all shadow-md hover:shadow-lg">
+          <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Confirmar Reserva
+        </button>
+        
+        <button 
+          *ngIf="selectedReservation.estado === 'confirmada'"
+          (click)="closeDetailsModal(); openCompleteModal(selectedReservation)"
+          class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center transition-all shadow-md hover:shadow-lg">
+          <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+          </svg>
+          Marcar Completada
+        </button>
+        
+        <button 
+          *ngIf="selectedReservation.estado !== 'cancelada' && selectedReservation.estado !== 'completada'"
+          (click)="closeDetailsModal(); openCancelModal(selectedReservation)"
+          class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold flex items-center transition-all shadow-md hover:shadow-lg">
+          <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Cancelar Reserva
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de Cancelación -->
+<div *ngIf="showCancelModal && selectedReservation" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="closeCancelModal()">
+  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="bg-red-600 text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <svg class="h-6 w-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <h2 class="text-xl font-bold">Cancelar Reserva</h2>
+            <p class="text-red-100 text-sm mt-1">{{ selectedReservation.codigoReserva }}</p>
+          </div>
+        </div>
+        <button (click)="closeCancelModal()" class="text-white hover:text-red-200 text-3xl leading-none">
+          ×
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-6">
+      
+      <!-- Info de la reserva -->
+      <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-4">
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Huésped:</span>
+            <span class="font-semibold">{{ selectedReservation.usuario.nombre }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Habitación:</span>
+            <span class="font-semibold">{{ getRoomName(selectedReservation) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Fechas:</span>
+            <span class="font-semibold">
+              {{ selectedReservation.fechaCheckin | date:'dd/MM' }} - 
+              {{ selectedReservation.fechaCheckout | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advertencia -->
+      <div class="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-4">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-yellow-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-yellow-800 mb-1">Atención</p>
+            <p class="text-xs text-yellow-700">
+              Esta acción no se puede deshacer. La reserva será cancelada y la habitación quedará disponible nuevamente. El huésped podrá ver el cambio de estado en su perfil.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campo de motivo -->
+      <div class="mb-4">
+        <label class="block text-sm font-bold mb-2 text-gray-700">
+          Motivo de cancelación <span class="text-gray-400 font-normal">(opcional)</span>
+        </label>
+        <textarea
+          [(ngModel)]="cancelReason"
+          rows="3"
+          placeholder="Ej: Problemas de mantenimiento, overbooking, etc."
+          class="w-full px-4 py-3 border-2 border-black rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+          [disabled]="canceling"
+        ></textarea>
+        <p class="text-xs text-gray-500 mt-1">
+          Este motivo será visible para el huésped y ayudará a explicar la situación.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="bg-gray-50 p-6 rounded-b-xl border-t-2 border-gray-200 flex justify-end space-x-3">
+      <button 
+        (click)="closeCancelModal()"
+        [disabled]="canceling"
+        class="px-6 py-3 border-2 border-black rounded-lg hover:bg-gray-100 font-semibold disabled:opacity-50">
+        Volver
+      </button>
+      
+      <button 
+        (click)="cancelarReserva(selectedReservation)"
+        [disabled]="canceling"
+        class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold disabled:opacity-50 flex items-center">
+        <svg *ngIf="canceling" class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span *ngIf="!canceling">Sí, cancelar reserva</span>
+        <span *ngIf="canceling">Cancelando...</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div *ngIf="showConfirmModal && selectedReservation" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="closeConfirmModal()">
+  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="bg-blue-600 text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <h2 class="text-xl font-bold">Confirmar Reserva</h2>
+            <p class="text-blue-100 text-sm mt-1">{{ selectedReservation.codigoReserva }}</p>
+          </div>
+        </div>
+        <button (click)="closeConfirmModal()" class="text-white hover:text-blue-200 text-3xl leading-none">
+          ×
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-6">
+      
+      <!-- Info de la reserva -->
+      <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-4">
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Huésped:</span>
+            <span class="font-semibold">{{ selectedReservation.usuario.nombre }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Habitación:</span>
+            <span class="font-semibold">{{ getRoomName(selectedReservation) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Fechas:</span>
+            <span class="font-semibold">
+              {{ selectedReservation.fechaCheckin | date:'dd/MM' }} - 
+              {{ selectedReservation.fechaCheckout | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Total:</span>
+            <span class="font-bold text-blue-600">S/ {{ (selectedReservation.total || selectedReservation.precioTotal) | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="bg-blue-50 border-2 border-blue-400 rounded-lg p-4">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-blue-800 mb-1">Confirmar esta reserva</p>
+            <p class="text-xs text-blue-700">
+              Al confirmar, esta reserva cambiará a estado "Confirmada" y el huésped podrá proceder con su check-in en la fecha acordada.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="bg-gray-50 p-6 rounded-b-xl border-t-2 border-gray-200 flex justify-end space-x-3">
+      <button 
+        (click)="closeConfirmModal()"
+        class="px-6 py-3 border-2 border-black rounded-lg hover:bg-gray-100 font-semibold">
+        Cancelar
+      </button>
+      
+      <button 
+        (click)="confirmarReserva(selectedReservation)"
+        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center shadow-md hover:shadow-lg transition-all">
+        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Sí, confirmar reserva
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de Completar -->
+<div *ngIf="showCompleteModal && selectedReservation" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="closeCompleteModal()">
+  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="bg-green-600 text-white p-6 rounded-t-xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <svg class="h-6 w-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+          </svg>
+          <div>
+            <h2 class="text-xl font-bold">Marcar como Completada</h2>
+            <p class="text-green-100 text-sm mt-1">{{ selectedReservation.codigoReserva }}</p>
+          </div>
+        </div>
+        <button (click)="closeCompleteModal()" class="text-white hover:text-green-200 text-3xl leading-none">
+          ×
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-6">
+      
+      <!-- Info de la reserva -->
+      <div class="bg-gray-50 border-2 border-gray-200 rounded-lg p-4 mb-4">
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Huésped:</span>
+            <span class="font-semibold">{{ selectedReservation.usuario.nombre }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Habitación:</span>
+            <span class="font-semibold">{{ getRoomName(selectedReservation) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Check-out:</span>
+            <span class="font-semibold">{{ selectedReservation.fechaCheckout | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Total:</span>
+            <span class="font-bold text-green-600">S/ {{ (selectedReservation.total || selectedReservation.precioTotal) | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="bg-green-50 border-2 border-green-400 rounded-lg p-4">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-green-600 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-green-800 mb-1">Marcar como completada</p>
+            <p class="text-xs text-green-700">
+              Al completar, se registrará que el huésped finalizó su estadía exitosamente. La reserva quedará en el historial como completada y la habitación estará disponible para nuevas reservas.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="bg-gray-50 p-6 rounded-b-xl border-t-2 border-gray-200 flex justify-end space-x-3">
+      <button 
+        (click)="closeCompleteModal()"
+        class="px-6 py-3 border-2 border-black rounded-lg hover:bg-gray-100 font-semibold">
+        Cancelar
+      </button>
+      
+      <button 
+        (click)="completarReserva(selectedReservation)"
+        class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold flex items-center shadow-md hover:shadow-lg transition-all">
+        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/>
+        </svg>
+        Sí, marcar como completada
+      </button>
+    </div>
+
+  </div>
+</div>
+

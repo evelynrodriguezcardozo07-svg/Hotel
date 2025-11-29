@@ -1,0 +1,895 @@
+<div class="min-h-screen bg-white">
+  <!-- Loading -->
+  <div *ngIf="loading" class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="inline-block w-16 h-16 border border-gray-200 border-t-black rounded-full animate-spin"></div>
+      <p class="mt-6 text-sm text-gray-400 font-light uppercase tracking-widest">Cargando...</p>
+    </div>
+  </div>
+
+  <!-- Detalle del hotel -->
+  <div *ngIf="!loading && hotel" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Botón volver -->
+    <button
+      (click)="goBack()"
+      class="mb-12 inline-flex items-center text-gray-400 hover:text-black font-light text-sm uppercase tracking-widest transition-colors"
+    >
+      <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Volver
+    </button>
+
+    <!-- Imagen principal -->
+    <div class="mb-16">
+      <div class="h-[600px] bg-gray-100 flex items-center justify-center overflow-hidden">
+        <img *ngIf="hotel.imagen || hotel.imagenPrincipal" 
+             [src]="(hotel.imagen || hotel.imagenPrincipal) | safeImage" 
+             [alt]="hotel.nombre" 
+             class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500">
+        <svg *ngIf="!hotel.imagen && !hotel.imagenPrincipal" class="h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-16">
+      <!-- Información principal -->
+      <div class="lg:col-span-2 space-y-16">
+        <!-- Header -->
+        <div class="pb-12 border-b border-gray-200">
+          <h1 class="text-5xl md:text-6xl font-extralight text-black mb-6 tracking-tight">
+            {{ hotel.nombre }}
+          </h1>
+          <div class="flex items-baseline gap-6 mb-8 text-gray-400 font-light">
+            <span class="text-sm uppercase tracking-widest">{{ hotel.estrellas }} estrellas</span>
+            <span *ngIf="hotel.totalReviews > 0" class="text-sm">
+              {{ hotel.puntuacionPromedio | number:'1.1-1' }} ({{ hotel.totalReviews }})
+            </span>
+          </div>
+          <div class="text-gray-500 font-light">
+            {{ hotel.direccion.calle }}, {{ hotel.direccion.ciudad }}, {{ hotel.direccion.estadoProvincia }}, {{ hotel.direccion.pais }}
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="pb-12 border-b border-gray-200">
+          <h2 class="text-2xl font-light text-black mb-6 tracking-tight">Acerca de</h2>
+          <p class="text-gray-600 font-light leading-relaxed text-lg">{{ hotel.descripcion }}</p>
+        </div>
+
+        <!-- Información de contacto -->
+        <div class="pb-12 border-b border-gray-200">
+          <h2 class="text-2xl font-light text-black mb-6 tracking-tight">Contacto</h2>
+          <div class="space-y-4">
+            <div class="text-gray-600 font-light">
+              <span class="text-gray-400 text-sm uppercase tracking-widest mr-4">Tel</span>
+              {{ hotel.telefono }}
+            </div>
+            <div class="text-gray-600 font-light">
+              <span class="text-gray-400 text-sm uppercase tracking-widest mr-4">Email</span>
+              {{ hotel.emailContacto }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Propietario -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-xl font-semibold text-gray-900 mb-4">Propietario</h2>
+          <div class="flex items-center">
+            <div class="h-12 w-12 bg-primary-100 rounded-full flex items-center justify-center mr-4">
+              <span class="text-primary-600 font-semibold text-lg">{{ hotel.propietario.nombre.charAt(0) }}</span>
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900">{{ hotel.propietario.nombre }}</p>
+              <p class="text-gray-600 text-sm">{{ hotel.propietario.email }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar - Búsqueda de disponibilidad -->
+      <div class="lg:col-span-1">
+        <div class="bg-white border border-gray-200 p-10 sticky top-28">
+          <h3 class="text-xl font-light text-black mb-8 tracking-tight">Disponibilidad</h3>
+          
+          <div class="space-y-8">
+            <div>
+              <label class="block text-xs font-light text-gray-400 mb-3 uppercase tracking-widest">
+                Entrada
+              </label>
+              <input
+                type="date"
+                [(ngModel)]="searchDates.checkin"
+                class="input-field w-full"
+                [min]="minDate"
+                [max]="maxDate"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-light text-gray-400 mb-3 uppercase tracking-widest">
+                Salida
+              </label>
+              <input
+                type="date"
+                [(ngModel)]="searchDates.checkout"
+                class="input-field w-full"
+                [min]="searchDates.checkin"
+                [max]="maxDate"
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-light text-gray-400 mb-3 uppercase tracking-widest">
+                Huéspedes
+              </label>
+              <select
+                [(ngModel)]="searchDates.guests"
+                class="input-field w-full"
+              >
+                <option [value]="1">1</option>
+                <option [value]="2">2</option>
+                <option [value]="3">3</option>
+                <option [value]="4">4</option>
+                <option [value]="5">5</option>
+                <option [value]="6">6+</option>
+              </select>
+            </div>
+
+            <button
+              (click)="searchAvailability()"
+              [disabled]="loadingRooms"
+              class="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span *ngIf="!loadingRooms">Buscar</span>
+              <span *ngIf="loadingRooms">Buscando...</span>
+            </button>
+          </div>
+
+          <div class="mt-10 pt-10 border-t border-gray-200">
+            <div class="flex items-baseline justify-between">
+              <span class="text-gray-400 text-xs font-light uppercase tracking-widest">Desde</span>
+              <span class="text-3xl font-light text-black">S/ {{ hotel.precioMinimo | number:'1.0-0' }}</span>
+            </div>
+            <div class="text-right mt-2 text-gray-400 text-xs font-light uppercase tracking-widest">por noche</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de habitaciones -->
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">Habitaciones disponibles</h2>
+
+      <!-- Loading habitaciones -->
+      <div *ngIf="loadingRooms" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <p class="mt-2 text-gray-600">Cargando habitaciones...</p>
+      </div>
+
+      <!-- Lista de habitaciones -->
+      <div *ngIf="!loadingRooms && availableRooms.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div
+          *ngFor="let room of availableRooms"
+          class="card bg-white overflow-hidden"
+        >
+          <div class="h-48 bg-black flex items-center justify-center relative overflow-hidden group">
+            <!-- Imagen actual -->
+            <img 
+              *ngIf="room.imagenes && room.imagenes.length > 0" 
+              [src]="'data:image/jpeg;base64,' + getCurrentImage(room)" 
+              alt="Habitación {{ room.numero }}"
+              class="w-full h-full object-cover"
+            />
+            <svg 
+              *ngIf="!room.imagenes || room.imagenes.length === 0"
+              class="h-16 w-16 text-white" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              stroke-width="1"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            
+            <!-- Controles del carrusel (solo si hay más de 1 imagen) -->
+            <div *ngIf="room.imagenes && room.imagenes.length > 1" class="absolute inset-0 flex items-center justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                (click)="previousImage(room, $event)"
+                class="bg-white bg-opacity-80 hover:bg-opacity-100 text-black rounded-full p-2 transition-all shadow-lg"
+                title="Imagen anterior"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+              <button
+                (click)="nextImage(room, $event)"
+                class="bg-white bg-opacity-80 hover:bg-opacity-100 text-black rounded-full p-2 transition-all shadow-lg"
+                title="Siguiente imagen"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Indicadores de imagen -->
+            <div *ngIf="room.imagenes && room.imagenes.length > 1" class="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+              <span 
+                *ngFor="let img of room.imagenes; let i = index"
+                class="h-1.5 rounded-full transition-all"
+                [class.w-6]="i === getImageIndex(room)"
+                [class.w-1.5]="i !== getImageIndex(room)"
+                [class.bg-white]="i === getImageIndex(room)"
+                [class.bg-white]="i !== getImageIndex(room)"
+                [class.bg-opacity-100]="i === getImageIndex(room)"
+                [class.bg-opacity-50]="i !== getImageIndex(room)"
+              ></span>
+            </div>
+            
+            <!-- Badge con cantidad de imágenes -->
+            <span 
+              *ngIf="room.imagenes && room.imagenes.length > 1"
+              class="absolute top-2 right-2 bg-white bg-opacity-90 text-black text-xs px-2 py-1 rounded-full font-light"
+            >
+              {{ getImageIndex(room) + 1 }}/{{ room.imagenes.length }}
+            </span>
+          </div>
+
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ getRoomType(room).nombre }}</h3>
+                <p class="text-gray-600 text-sm">Habitación {{ room.numero }}</p>
+              </div>
+              <span
+                class="px-3 py-1 rounded-full text-xs font-semibold"
+                [class.bg-green-100]="room.estado === 'disponible'"
+                [class.text-green-800]="room.estado === 'disponible'"
+                [class.bg-yellow-100]="room.estado === 'mantenimiento'"
+                [class.text-yellow-800]="room.estado === 'mantenimiento'"
+              >
+                {{ room.estado }}
+              </span>
+            </div>
+
+            <p class="text-gray-600 text-sm mb-4">{{ getRoomType(room).descripcion }}</p>
+
+            <div class="space-y-2 mb-4">
+              <div class="flex items-center text-sm text-gray-700">
+                <svg class="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span>Capacidad: {{ room.capacidad }} personas</span>
+              </div>
+              <div class="flex items-center text-sm text-gray-700">
+                <svg class="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span>{{ room.numCamas }} cama(s)</span>
+              </div>
+              <div *ngIf="room.metrosCuadrados" class="flex items-center text-sm text-gray-700">
+                <svg class="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"></path>
+                </svg>
+                <span>{{ room.metrosCuadrados }} m²</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div>
+                <p class="text-2xl font-bold text-primary-600">${{ room.precioBase | number:'1.0-0' }}</p>
+                <p class="text-gray-500 text-sm">por noche</p>
+              </div>
+              <button
+                (click)="openReservationModal(room)"
+                [disabled]="room.estado !== 'disponible'"
+                class="btn-primary"
+              >
+                Reservar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin resultados -->
+      <div *ngIf="!loadingRooms && availableRooms.length === 0 && searchPerformed" class="text-center py-12">
+        <svg class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-gray-600 text-lg">No hay habitaciones disponibles para las fechas seleccionadas</p>
+        <p class="text-gray-500 text-sm mt-2">Intenta con otras fechas o menos huéspedes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Reseñas -->
+  <div class="mt-16 mb-8">
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="text-3xl font-light text-black">Reseñas de huéspedes</h2>
+      <button 
+        *ngIf="isAuthenticated()"
+        (click)="openReviewModal()"
+        class="px-6 py-3 bg-black text-white hover:bg-gray-800 transition-all font-medium flex items-center gap-2">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Escribir reseña
+      </button>
+    </div>
+
+    <!-- Resumen de calificaciones -->
+    <div *ngIf="(hotel?.totalReviews || 0) > 0" class="bg-gray-50 rounded-xl p-8 mb-8 border-2 border-gray-200">
+      <div class="flex items-center gap-8">
+        <div class="text-center">
+          <div class="text-6xl font-light text-black mb-2">{{ hotel?.puntuacionPromedio | number:'1.1-1' }}</div>
+          <div class="flex items-center justify-center gap-1 mb-2">
+            <svg *ngFor="let star of [1,2,3,4,5]" 
+                 class="h-5 w-5"
+                 [class.text-yellow-400]="star <= (hotel?.puntuacionPromedio || 0)"
+                 [class.text-gray-300]="star > (hotel?.puntuacionPromedio || 0)"
+                 fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </div>
+          <p class="text-sm text-gray-600">{{ hotel?.totalReviews }} {{ hotel?.totalReviews === 1 ? 'reseña' : 'reseñas' }}</p>
+        </div>
+        <div class="flex-1 text-sm text-gray-600">
+          <p class="mb-2">Basado en {{ hotel?.totalReviews }} experiencias verificadas de huéspedes</p>
+          <p class="text-xs text-gray-500">Las reseñas son escritas por huéspedes que se han alojado en este hotel</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de reseñas -->
+    <div *ngIf="(hotel?.reviews?.length || 0) > 0" class="space-y-6">
+      <div *ngFor="let review of hotel?.reviews" 
+           class="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-gray-300 transition-all">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+              <svg class="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="font-semibold text-gray-900">{{ review.usuario.nombre }}</p>
+              <p class="text-xs text-gray-500">{{ review.creadoEn | date:'dd MMM yyyy' }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1">
+            <svg *ngFor="let star of [1,2,3,4,5]" 
+                 class="h-4 w-4"
+                 [class.text-yellow-400]="star <= review.puntuacion"
+                 [class.text-gray-300]="star > review.puntuacion"
+                 fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-gray-700 mb-4">{{ review.comentario }}</p>
+        
+        <!-- Respuesta del hotel -->
+        <div *ngIf="review.respuesta" class="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300">
+          <p class="text-sm font-semibold text-gray-900 mb-2">Respuesta del hotel</p>
+          <p class="text-sm text-gray-700">{{ review.respuesta }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin reseñas -->
+    <div *ngIf="(hotel?.reviews?.length || 0) === 0" 
+         class="text-center py-16 bg-gray-50 rounded-xl border-2 border-gray-200">
+      <svg class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/>
+      </svg>
+      <p class="text-gray-600 text-lg mb-2">Aún no hay reseñas</p>
+      <p class="text-gray-500 text-sm">Sé el primero en compartir tu experiencia</p>
+      <button 
+        *ngIf="isAuthenticated()"
+        (click)="openReviewModal()"
+        class="mt-4 px-6 py-3 bg-black text-white hover:bg-gray-800 transition-all font-medium">
+        Escribir la primera reseña
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal de reserva -->
+  <div *ngIf="showReservationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center justify-between">
+          <h3 class="text-2xl font-bold text-gray-900">Confirmar reserva</h3>
+          <button
+            (click)="closeReservationModal()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <div *ngIf="selectedRoom" class="mb-6">
+          <div class="bg-gray-50 rounded-lg p-4 mb-4">
+            <h4 class="font-semibold text-gray-900 mb-2">{{ getRoomType(selectedRoom).nombre }}</h4>
+            <p class="text-gray-600 text-sm mb-2">Habitación {{ selectedRoom.numero }}</p>
+            <p class="text-gray-700">{{ getRoomType(selectedRoom).descripcion }}</p>
+          </div>
+
+          <!-- Selector de tipo de reserva -->
+          <div class="mb-6">
+            <label class="block text-xs font-light text-gray-500 mb-4 uppercase tracking-widest">Tipo de reserva</label>
+            <div class="grid grid-cols-2 gap-px bg-gray-200">
+              <button
+                type="button"
+                (click)="reservationType = 'noche'; onReservationTypeChange()"
+                [class.bg-black]="reservationType === 'noche'"
+                [class.text-white]="reservationType === 'noche'"
+                [class.bg-white]="reservationType !== 'noche'"
+                [class.text-black]="reservationType !== 'noche'"
+                class="p-8 font-light text-base transition-smooth border-2 uppercase tracking-wider"
+                [class.border-black]="reservationType === 'noche'"
+                [class.border-gray-200]="reservationType !== 'noche'"
+              >
+                <svg class="h-8 w-8 mx-auto mb-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                </svg>
+                Por noche
+              </button>
+              <button
+                type="button"
+                (click)="reservationType = 'horas'; onReservationTypeChange()"
+                [class.bg-black]="reservationType === 'horas'"
+                [class.text-white]="reservationType === 'horas'"
+                [class.bg-white]="reservationType !== 'horas'"
+                [class.text-black]="reservationType !== 'horas'"
+                class="p-8 font-light text-base transition-smooth border-2 uppercase tracking-wider"
+                [class.border-black]="reservationType === 'horas'"
+                [class.border-gray-200]="reservationType !== 'horas'"
+              >
+                <svg class="h-8 w-8 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Por horas
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <!-- Reserva por noche -->
+            <div *ngIf="reservationType === 'noche'">
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <label class="flex text-sm font-bold text-gray-700 mb-2 items-center">
+                    <span class="bg-blue-100 text-blue-600 p-1.5 rounded-lg mr-2 text-xs">
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                    Fecha de entrada
+                  </label>
+                  <input
+                    type="date"
+                    [(ngModel)]="reservationData.fechaCheckin"
+                    class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
+                    [min]="minDate"
+                    [max]="maxDate"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="flex text-sm font-bold text-gray-700 mb-2 items-center">
+                    <span class="bg-purple-100 text-purple-600 p-1.5 rounded-lg mr-2 text-xs">
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                    Fecha de salida
+                  </label>
+                  <input
+                    type="date"
+                    [(ngModel)]="reservationData.fechaCheckout"
+                    class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all"
+                    [min]="reservationData.fechaCheckin || minDate"
+                    [max]="maxDate"
+                    required
+                  />
+                </div>
+              </div>
+              <p *ngIf="calculateNights() > 0" class="mt-3 text-center text-lg font-semibold text-blue-600">
+                {{ calculateNights() }} {{ calculateNights() === 1 ? 'noche' : 'noches' }}
+              </p>
+            </div>
+
+            <!-- Reserva por horas -->
+            <div *ngIf="reservationType === 'horas'">
+              <div class="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 rounded-xl p-6 mb-6 shadow-sm">
+                <div class="flex items-start mb-4">
+                  <div class="flex-shrink-0">
+                    <div class="h-10 w-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                      <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-4 flex-1">
+                    <h3 class="text-lg font-bold text-orange-900 mb-1">
+                      Información importante
+                    </h3>
+                    <p class="text-sm text-orange-700">
+                      Por favor, lee las condiciones antes de continuar
+                    </p>
+                  </div>
+                </div>
+                
+                <div class="grid gap-3">
+                  <div class="flex items-start bg-white bg-opacity-60 rounded-lg p-3">
+                    <svg class="h-5 w-5 text-orange-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900">Solo para hoy</p>
+                      <p class="text-xs text-gray-600">Las reservas por horas son únicamente para el día de hoy</p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-start bg-white bg-opacity-60 rounded-lg p-3">
+                    <svg class="h-5 w-5 text-orange-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900">Duración: 3 - 12 horas</p>
+                      <p class="text-xs text-gray-600">Mínimo 3 horas, máximo 12 horas de estadía</p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-start bg-white bg-opacity-60 rounded-lg p-3">
+                    <svg class="h-5 w-5 text-orange-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900">Tarifa especial</p>
+                      <p class="text-xs text-gray-600">40% del precio base por hora (descuento aplicado)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-6">
+                <div>
+                  <label class="flex text-sm font-bold text-gray-700 mb-2 items-center">
+                    <span class="bg-green-100 text-green-600 p-1.5 rounded-lg mr-2 text-xs">
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                    Hora de entrada
+                  </label>
+                  <select
+                    [(ngModel)]="reservationData.horaCheckin"
+                    (change)="onHoraCheckinChange()"
+                    class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all cursor-pointer"
+                  >
+                    <option *ngFor="let hour of availableHours" [value]="hour">{{ hour }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="flex text-sm font-bold text-gray-700 mb-2 items-center">
+                    <span class="bg-red-100 text-red-600 p-1.5 rounded-lg mr-2 text-xs">
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                    Hora de salida
+                  </label>
+                  <select
+                    [(ngModel)]="reservationData.horaCheckout"
+                    class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-4 focus:ring-red-200 focus:border-red-500 transition-all cursor-pointer"
+                    [disabled]="!reservationData.horaCheckin"
+                  >
+                    <option *ngFor="let hour of availableHours" [value]="hour" [disabled]="hour <= minHoraCheckout">
+                      {{ hour }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div *ngIf="getHoursDuration() > 0" class="mt-4">
+                <p class="text-center text-lg font-semibold"
+                   [class.text-green-600]="getHoursDuration() >= 3 && getHoursDuration() <= 12"
+                   [class.text-red-600]="getHoursDuration() < 3 || getHoursDuration() > 12">
+                  Duración: {{ getHoursDuration() }} horas
+                  <span *ngIf="getHoursDuration() < 3" class="text-sm flex items-center justify-center">
+                    <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    Mínimo 3 horas requeridas
+                  </span>
+                  <span *ngIf="getHoursDuration() > 12" class="text-sm flex items-center justify-center">
+                    <svg class="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    Máximo 12 horas permitidas
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Número de huéspedes -->
+            <div>
+              <label class="flex text-sm font-bold text-gray-700 mb-2 items-center">
+                <span class="bg-green-100 text-green-600 p-1.5 rounded-lg mr-2 text-xs">
+                  <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                  </svg>
+                </span>
+                Número de huéspedes
+              </label>
+              <select
+                [(ngModel)]="reservationData.cantidadHuespedes"
+                class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all cursor-pointer"
+              >
+                <option [value]="i" *ngFor="let i of [1,2,3,4,5,6]">
+                  {{ i }} {{ i === 1 ? 'huésped' : 'huéspedes' }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Datos del huésped principal -->
+            <div class="bg-blue-50 rounded-xl p-6 border-2 border-blue-200">
+              <h4 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="h-5 w-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                Datos del huésped principal
+              </h4>
+              
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Nombre *
+                  </label>
+                  <input
+                    type="text"
+                    [(ngModel)]="reservationData.nombreHuesped"
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+                    placeholder="Juan"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                    minlength="2"
+                    maxlength="100"
+                    required
+                    title="Solo letras y espacios"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Apellido *
+                  </label>
+                  <input
+                    type="text"
+                    [(ngModel)]="reservationData.apellidoHuesped"
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+                    placeholder="Pérez"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                    minlength="2"
+                    maxlength="100"
+                    required
+                    title="Solo letras y espacios"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    DNI / Documento *
+                  </label>
+                  <input
+                    type="text"
+                    [(ngModel)]="reservationData.dniHuesped"
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+                    placeholder="12345678"
+                    pattern="[0-9A-Za-z]+"
+                    minlength="8"
+                    maxlength="20"
+                    required
+                    title="Solo números y letras, mínimo 8 caracteres"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Teléfono *
+                  </label>
+                  <input
+                    type="tel"
+                    [(ngModel)]="reservationData.telefonoHuesped"
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+                    placeholder="+51 999 999 999"
+                    pattern="[+]?[0-9\s()-]+"
+                    minlength="9"
+                    maxlength="20"
+                    required
+                    title="Solo números, espacios, paréntesis o guiones, mínimo 9 caracteres"
+                  />
+                </div>
+              </div>
+              
+              <p class="text-xs text-gray-600 mt-3 flex items-start">
+                <svg class="h-4 w-4 text-blue-500 mr-1 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Estos datos son necesarios para confirmar tu reserva. El email de contacto será el de tu cuenta registrada.
+              </p>
+            </div>
+
+            <!-- Notas especiales -->
+            <div>
+              <label class="flex text-sm font-bold text-gray-700 mb-2 items-center">
+                <span class="bg-yellow-100 text-yellow-600 p-1.5 rounded-lg mr-2 text-xs">
+                  <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                  </svg>
+                </span>
+                Notas especiales (opcional)
+              </label>
+              <textarea
+                [(ngModel)]="reservationData.notasEspeciales"
+                rows="3"
+                class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:ring-4 focus:ring-yellow-200 focus:border-yellow-500 transition-all"
+                placeholder="Ej: Llegada tarde, cuna para bebé, piso alto, etc."
+              ></textarea>
+            </div>
+
+            <!-- Resumen de precios -->
+            <div class="bg-white p-8 border-2 border-black">
+              <h4 class="font-light text-base text-black mb-6 uppercase tracking-widest">Resumen de costos</h4>
+              <div class="space-y-4">
+                <div *ngIf="reservationType === 'noche'" class="flex justify-between text-gray-600 font-light">
+                  <span>${{ selectedRoom.precioBase | number:'1.0-0' }} × {{ calculateNights() }} {{ calculateNights() === 1 ? 'noche' : 'noches' }}</span>
+                  <span class="font-medium text-black">${{ selectedRoom.precioBase * calculateNights() | number:'1.0-0' }}</span>
+                </div>
+                <div *ngIf="reservationType === 'horas'" class="flex justify-between text-gray-600 font-light">
+                  <span>${{ selectedRoom.precioBase * 0.40 | number:'1.0-0' }} × {{ getHoursDuration() }} horas</span>
+                  <span class="font-medium text-black">${{ (selectedRoom.precioBase * 0.40 * getHoursDuration()) | number:'1.0-0' }}</span>
+                </div>
+                <div class="flex justify-between text-gray-500 text-xs font-light uppercase tracking-wider">
+                  <span>Impuestos (18%)</span>
+                  <span>Incluido</span>
+                </div>
+                <div class="flex justify-between text-2xl font-light text-black pt-4 border-t border-gray-200">
+                  <span class="uppercase tracking-wider">Total</span>
+                  <span class="font-medium">
+                    ${{ calculateTotal() | number:'1.0-0' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer del modal -->
+      <div class="p-8 border-t border-gray-200 bg-white flex justify-end gap-px">
+        <button
+          (click)="closeReservationModal()"
+          [disabled]="submittingReservation"
+          class="btn-secondary disabled:opacity-50"
+        >
+          <span>Cancelar</span>
+        </button>
+        <button
+          (click)="submitReservation()"
+          [disabled]="submittingReservation || !reservationData.fechaCheckin || !reservationData.fechaCheckout || 
+                     !reservationData.nombreHuesped || !reservationData.apellidoHuesped || 
+                     !reservationData.dniHuesped || !reservationData.telefonoHuesped"
+          class="btn-primary disabled:opacity-50"
+        >
+          <span *ngIf="!submittingReservation" class="flex items-center">
+            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Confirmar reserva
+          </span>
+          <span *ngIf="submittingReservation" class="flex items-center">
+            <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Procesando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para crear reseña -->
+<div *ngIf="showReviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+    <!-- Header -->
+    <div class="p-6 border-b-2 border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-2xl font-bold text-gray-900">Escribir reseña</h3>
+        <button (click)="closeReviewModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="p-6">
+      <!-- Calificación -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-3 text-gray-700">Calificación</label>
+        <div class="flex gap-2 justify-center">
+          <button *ngFor="let star of [1,2,3,4,5]" 
+                  type="button"
+                  (click)="setRating(star)"
+                  class="transition-all hover:scale-110">
+            <svg class="h-10 w-10"
+                 [class.text-yellow-400]="star <= reviewData.puntuacion"
+                 [class.text-gray-300]="star > reviewData.puntuacion"
+                 fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </button>
+        </div>
+        <p *ngIf="reviewData.puntuacion > 0" class="text-center text-sm text-gray-600 mt-2">
+          {{ getRatingText(reviewData.puntuacion) }}
+        </p>
+      </div>
+
+      <!-- Comentario -->
+      <div class="mb-6">
+        <label class="block text-sm font-bold mb-2 text-gray-700">
+          Comentario <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          [(ngModel)]="reviewData.comentario"
+          rows="5"
+          maxlength="1000"
+          placeholder="Cuéntanos sobre tu experiencia en este hotel..."
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black resize-none"
+          [disabled]="submittingReview"
+        ></textarea>
+        <p class="text-xs text-gray-500 mt-1 text-right">
+          {{ reviewData.comentario.length || 0 }}/1000 caracteres
+        </p>
+      </div>
+
+      <!-- Mensaje de error -->
+      <div *ngIf="reviewError" class="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
+        <p class="text-sm text-red-700">{{ reviewError }}</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-6 border-t-2 border-gray-200 flex justify-end gap-3">
+      <button 
+        (click)="closeReviewModal()"
+        [disabled]="submittingReview"
+        class="px-6 py-3 border-2 border-black rounded-lg hover:bg-gray-100 font-semibold disabled:opacity-50">
+        Cancelar
+      </button>
+      <button 
+        (click)="submitReview()"
+        [disabled]="submittingReview || !reviewData.puntuacion || !reviewData.comentario"
+        class="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 font-semibold disabled:opacity-50 flex items-center">
+        <svg *ngIf="submittingReview" class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span *ngIf="!submittingReview">Publicar reseña</span>
+        <span *ngIf="submittingReview">Publicando...</span>
+      </button>
+    </div>
+  </div>
+</div>
+

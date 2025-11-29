@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * Entidad Pago - Representa los pagos asociados a una reserva
  */
 @Entity
-@Table(name = "Pago", indexes = {
+@Table(name = \"pago\", indexes = {
     @Index(name = "IX_Pago_Reserva", columnList = "reserva_id"),
     @Index(name = "IX_Pago_Estado", columnList = "estado, fecha_pago")
 })

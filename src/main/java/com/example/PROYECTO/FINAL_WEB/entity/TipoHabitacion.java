@@ -15,7 +15,7 @@ import java.util.Set;
  * Entidad TipoHabitacion - Define los tipos de habitación (Individual, Doble, Suite, etc.)
  */
 @Entity
-@Table(name = "TipoHabitacion")
+@Table(name = \"tipo_habitacion\")
 @Getter
 @Setter
 @NoArgsConstructor

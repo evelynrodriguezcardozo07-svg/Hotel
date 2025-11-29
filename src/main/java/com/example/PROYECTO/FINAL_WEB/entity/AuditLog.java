@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * Entidad AuditLog - Registro de auditoría para el sistema
  */
 @Entity
-@Table(name = "AuditLog", indexes = {
+@Table(name = \"audit_log\", indexes = {
     @Index(name = "IX_AuditLog_Tabla_Registro", columnList = "tabla, registro_id, creado_en")
 })
 @Getter

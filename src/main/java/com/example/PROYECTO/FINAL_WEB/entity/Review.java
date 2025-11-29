@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Entidad Review - Representa reseñas/opiniones de usuarios sobre hoteles
  */
 @Entity
-@Table(name = "Review", indexes = {
+@Table(name = \"review\", indexes = {
     @Index(name = "IX_Review_Hotel", columnList = "hotel_id, creado_en"),
     @Index(name = "IX_Review_Usuario", columnList = "usuario_id")
 })

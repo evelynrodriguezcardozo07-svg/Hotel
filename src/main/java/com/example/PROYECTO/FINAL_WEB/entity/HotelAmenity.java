@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * Entidad HotelAmenity - Relación Many-to-Many entre Hotel y Amenity
  */
 @Entity
-@Table(name = "HotelAmenity")
+@Table(name = \"hotel_amenity\")
 @Getter
 @Setter
 @NoArgsConstructor

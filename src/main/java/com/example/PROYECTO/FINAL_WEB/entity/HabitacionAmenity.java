@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * Entidad HabitacionAmenity - Relación Many-to-Many entre Habitacion y Amenity
  */
 @Entity
-@Table(name = "HabitacionAmenity")
+@Table(name = \"habitacion_amenity\")
 @Getter
 @Setter
 @NoArgsConstructor

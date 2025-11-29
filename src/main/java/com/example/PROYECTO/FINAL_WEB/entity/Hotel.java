@@ -16,7 +16,7 @@ import java.util.Set;
  * Incluye relación con propietario, dirección, habitaciones y amenidades
  */
 @Entity
-@Table(name = "Hotel", indexes = {
+@Table(name = \"hotel\", indexes = {
     @Index(name = "IX_Hotel_Propietario", columnList = "propietario_id"),
     @Index(name = "IX_Hotel_Estado", columnList = "estado"),
     @Index(name = "IX_Hotel_Precio", columnList = "precio_minimo, precio_maximo"),

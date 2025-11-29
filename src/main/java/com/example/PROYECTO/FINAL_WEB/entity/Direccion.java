@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * Entidad Direccion - Almacena información de ubicación de hoteles
  */
 @Entity
-@Table(name = "Direccion", indexes = {
+@Table(name = \"direccion\", indexes = {
     @Index(name = "IX_Direccion_Ciudad", columnList = "ciudad, pais")
 })
 @Getter

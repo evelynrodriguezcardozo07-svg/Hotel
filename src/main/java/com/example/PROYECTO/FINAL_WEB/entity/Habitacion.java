@@ -15,7 +15,7 @@ import java.util.Set;
  * Entidad Habitacion - Representa una habitación de un hotel
  */
 @Entity
-@Table(name = "Habitacion", 
+@Table(name = \"habitacion\", 
     uniqueConstraints = @UniqueConstraint(
         name = "UX_Habitacion_Hotel_Numero", 
         columnNames = {"hotel_id", "numero"}

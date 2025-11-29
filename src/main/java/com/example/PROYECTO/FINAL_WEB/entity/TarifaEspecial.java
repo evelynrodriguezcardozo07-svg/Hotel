@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * Entidad TarifaEspecial - Maneja tarifas especiales por temporada
  */
 @Entity
-@Table(name = "TarifaEspecial", indexes = {
+@Table(name = \"tarifa_especial\", indexes = {
     @Index(name = "IX_TarifaEspecial_Fechas", columnList = "habitacion_id, fecha_inicio, fecha_fin")
 })
 @Getter

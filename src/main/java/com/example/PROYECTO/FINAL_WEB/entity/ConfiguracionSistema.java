@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * Entidad ConfiguracionSistema - Almacena configuraciones del sistema
  */
 @Entity
-@Table(name = "ConfiguracionSistema")
+@Table(name = \"configuracion_sistema\")
 @Getter
 @Setter
 @NoArgsConstructor

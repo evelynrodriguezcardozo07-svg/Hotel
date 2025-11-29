@@ -15,7 +15,7 @@ import java.util.Set;
  * Entidad Amenity - Representa las amenidades/servicios (WiFi, Piscina, etc.)
  */
 @Entity
-@Table(name = "Amenity")
+@Table(name = \"amenity\")
 @Getter
 @Setter
 @NoArgsConstructor

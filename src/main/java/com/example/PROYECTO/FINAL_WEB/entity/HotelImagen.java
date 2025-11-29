@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
  * Entidad HotelImagen - Almacena imágenes del hotel
  */
 @Entity
-@Table(name = "HotelImagen", indexes = {
-    @Index(name = "IX_HotelImagen_Hotel", columnList = "hotel_id, orden")
+@Table(name = "hotel_imagen", indexes = {
+    @Index(name = "idx_hotel_imagen_hotel", columnList = "hotel_id, orden")
 })
 @Getter
 @Setter

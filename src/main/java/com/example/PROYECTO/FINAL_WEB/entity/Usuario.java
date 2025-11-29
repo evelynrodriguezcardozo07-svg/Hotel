@@ -17,7 +17,7 @@ import java.util.Set;
  * Incluye soft delete y auditoría de fechas
  */
 @Entity
-@Table(name = "Usuario", indexes = {
+@Table(name = \"usuario\", indexes = {
     @Index(name = "IX_Usuario_Email", columnList = "email"),
     @Index(name = "IX_Usuario_Rol", columnList = "rol")
 })

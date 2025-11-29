@@ -16,7 +16,7 @@ import java.util.Set;
  * Entidad Reserva - Representa una reserva de habitación
  */
 @Entity
-@Table(name = "Reserva", indexes = {
+@Table(name = \"reserva\", indexes = {
     @Index(name = "IX_Reserva_Habitacion_Fechas", columnList = "habitacion_id, fecha_checkin, fecha_checkout"),
     @Index(name = "IX_Reserva_Usuario", columnList = "usuario_id, estado"),
     @Index(name = "IX_Reserva_Codigo", columnList = "codigo_reserva"),

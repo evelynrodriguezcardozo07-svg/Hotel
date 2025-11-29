@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * Entidad RoomAvailability - Controla la disponibilidad de habitaciones por fecha
  */
 @Entity
-@Table(name = "RoomAvailability",
+@Table(name = \"room_availability\",
     uniqueConstraints = @UniqueConstraint(
         name = "UX_RoomAvailability_Habitacion_Fecha",
         columnNames = {"habitacion_id", "fecha"}
